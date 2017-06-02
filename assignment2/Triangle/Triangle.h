@@ -49,16 +49,16 @@ public:
             ///--- Set transformation uniform
             /// @see http://eigen.tuxfamily.org/dox/classEigen_1_1AngleAxis.html#details
             
-            mat4 T = Eigen::Affine3f(Eigen::Translation3f(.5,.5,0)).matrix();
-            mat4 R = Eigen::Affine3f(Eigen::AngleAxisf(M_PI/6.0, vec3::UnitZ())).matrix();
+            mat4 T = Eigen::Affine3f(Eigen::Translation3f(0,0,0)).matrix();
+            mat4 R = Eigen::Affine3f(Eigen::AngleAxisf(0, vec3::UnitZ())).matrix();
             mat4 S = mat4::Identity();
-            S(0,0) = .25;
-            S(1,1) = .25;
+            S(0,0) = 1;
+            S(1,1) = 1;
             mat4 M = T*S*R;            
             GLuint M_id = glGetUniformLocation(_pid, "M");
             glUniformMatrix4fv(M_id, 1, GL_FALSE, M.data());
             ///--- Draw
-            glDrawArrays(GL_LINE_LOOP, 0, 3);
+            glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
         glBindVertexArray(0);        
         glUseProgram(0);
     }
