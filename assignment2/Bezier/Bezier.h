@@ -79,6 +79,9 @@ public:
             }
         }
 
+        for(i = 0; i < 300; i++){
+            vpoint_from_init[i] = vpoint[i];
+        }
         glGenBuffers(1, &_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vpoint), vpoint, GL_STATIC_DRAW);
@@ -91,6 +94,7 @@ public:
         ///--- to avoid the current object being polluted
         glBindVertexArray(0);
         glUseProgram(0);
+
     }
 
     void cleanup(){
@@ -101,17 +105,16 @@ public:
         glDeleteVertexArrays(1, &_vao);
     }
 
-    void draw(float time_s, float rotation, float tx, float ty){
+    void draw(float time_s, float rotation, float tx, float ty, float scale_x, float scale_y){
         glUseProgram(_pid);
         glBindVertexArray(_vao);
         ///--- Set transformation uniform
         /// @see http://eigen.tuxfamily.org/dox/classEigen_1_1AngleAxis.html#details
-
         mat4 T = Eigen::Affine3f(Eigen::Translation3f(tx,ty,0)).matrix();
         mat4 R = Eigen::Affine3f(Eigen::AngleAxisf(rotation, vec3::UnitZ())).matrix();
         mat4 S = mat4::Identity();
-        S(0,0) =  0.25;
-        S(1,1) =  0.25;
+        S(0,0) =  scale_x;
+        S(1,1) =  scale_y;
         mat4 M = T*S*R;
         GLuint M_id = glGetUniformLocation(_pid, "M");
         glUniformMatrix4fv(M_id, 1, GL_FALSE, M.data());
@@ -121,145 +124,187 @@ public:
         glBindVertexArray(0);
         glUseProgram(0);
     }
+
+    // Store the points created for later access (animation path)
+    GLfloat vpoint_from_init[300];
 };
 
 class Bat {
     public:
-        Bat(){
-        }
-        virtual void init(float speed_factor){
+        Bat(){}
+        virtual void init(float speed_factor, bezier_line* path){
             struct bezier_line right_wing[5];
             right_wing[0] = {
-                    vec3(+0.0f,   +0.0f, +0.0f),
-                    vec3(+0.125f, +0.0f, +0.0f),
-                    vec3(+0.25,   +0.0f, +0.0f),
-                    vec3(+0.5f,   +1.0f, +0.0f)
-              };
-             right_wing[1] = {
-                     vec3(+0.5f,  +1.0f, +0.0f),
-                     vec3(+0.75f, +1.0f, 0.0f),
-                     vec3(+1.0,   +1.0f, 0.0f),
-                     vec3(+2.0f,   0.5f, 0.0f)
-              };
-             right_wing[2] = {
-                     vec3(+2.0f,  +0.5f, +0.0f),
-                     vec3(+1.85f, +0.50f, 0.0f),
-                     vec3(+1.75,  +0.60f, 0.0f),
-                     vec3(+1.5f,  +0.0f, 0.0f)
-             };
-             right_wing[3] = {
-                     vec3(1.5f,  +0.0f, +0.0f),
-                     vec3(1.25f, +0.25f, 0.0f),
-                     vec3(0.85,  +0.30f, 0.0f),
-                     vec3(0.75f, -0.5f, 0.0f)
-             };
-             right_wing[4] = {
-                     vec3(0.75f, -0.5f, 0.0f),
-                     vec3(0.50f, +0.00f, 0.0f),
-                     vec3(0.25,  +0.05f, 0.0f),
-                     vec3(0.20f, -0.5f, 0.0f)
-             };
-             struct bezier_line left_wing[5];
-             left_wing[0] = {
-                     vec3(+0.0f,   +0.0f, +0.0f),
-                     vec3(-0.125f, +0.0f, +0.0f),
-                     vec3(-0.25,   +0.0f, +0.0f),
-                     vec3(-0.5f,   +1.0f, +0.0f)
-               };
-              left_wing[1] = {
-                      vec3(-0.5f,  +1.0f, +0.0f),
-                      vec3(-0.75f, +1.0f, 0.0f),
-                      vec3(-1.0,   +1.0f, 0.0f),
-                      vec3(-2.0f,   0.5f, 0.0f)
-               };
-              left_wing[2] = {
-                      vec3(-2.0f,  +0.5f, +0.0f),
-                      vec3(-1.85f, +0.50f, 0.0f),
-                      vec3(-1.75,  +0.60f, 0.0f),
-                      vec3(-1.5f,  +0.0f, 0.0f)
-              };
-              left_wing[3] = {
-                      vec3(-1.5f,  +0.0f, +0.0f),
-                      vec3(-1.25f, +0.25f, 0.0f),
-                      vec3(-0.85,  +0.30f, 0.0f),
-                      vec3(-0.75f, -0.5f, 0.0f)
-              };
-              left_wing[4] = {
-                      vec3(-0.75f, -0.5f, 0.0f),
-                      vec3(-0.50f, +0.00f, 0.0f),
-                      vec3(-0.25,  +0.05f, 0.0f),
-                      vec3(-0.20f, -0.5f, 0.0f)
-              };
-              struct bezier_line body[8];
-              body[0] = {
-                  vec3(+0.0f,   -2.5f, +0.0f),
-                  vec3(-0.125f, -2.5f, +0.0f),
-                  vec3(-0.25,   -2.5f, +0.0f),
-                  vec3(-0.5f,   -2.0f, +0.0f)
-              };
-              body[1] = {
-                  vec3(-0.5f,   -2.0f, +0.0f),
-                  vec3(-0.25f, -1.5f, +0.0f),
-                  vec3(-1.0f,  -1.5f, +0.0f),
-                  vec3(-0.5f,  +0.0f, +0.0f)
-              };
-              body[2] = {
-                  vec3(-0.5f,  +0.0f, +0.0f),
-                  vec3(-1.0f, +1.0f, +0.0f),
-                  vec3(-1.0,   +1.0f, +0.0f),
-                  vec3(-0.5f,   +2.0f, +0.0f)
-              };
-              body[3] = {
-                  vec3(-0.5f,  +2.0f, +0.0f),
+                vec3(+0.0f,   +0.0f, +0.0f),
+                vec3(+0.125f, +0.0f, +0.0f),
+                vec3(+0.25,   +0.0f, +0.0f),
+                vec3(+0.5f,   +1.0f, +0.0f)
+            };
+            right_wing[1] = {
+                 vec3(+0.5f,  +1.0f, +0.0f),
+                 vec3(+0.75f, +1.0f, 0.0f),
+                 vec3(+1.0,   +1.0f, 0.0f),
+                 vec3(+2.0f,   0.5f, 0.0f)
+            };
+            right_wing[2] = {
+                 vec3(+2.0f,  +0.5f, +0.0f),
+                 vec3(+1.85f, +0.50f, 0.0f),
+                 vec3(+1.75,  +0.60f, 0.0f),
+                 vec3(+1.5f,  +0.0f, 0.0f)
+            };
+            right_wing[3] = {
+                 vec3(1.5f,  +0.0f, +0.0f),
+                 vec3(1.25f, +0.25f, 0.0f),
+                 vec3(0.85,  +0.30f, 0.0f),
+                 vec3(0.75f, -0.5f, 0.0f)
+            };
+            right_wing[4] = {
+                 vec3(0.75f, -0.5f, 0.0f),
+                 vec3(0.50f, +0.00f, 0.0f),
+                 vec3(0.25,  +0.05f, 0.0f),
+                 vec3(0.20f, -0.5f, 0.0f)
+            };
+            struct bezier_line left_wing[5];
+            left_wing[0] = {
+                 vec3(+0.0f,   +0.0f, +0.0f),
+                 vec3(-0.125f, +0.0f, +0.0f),
+                 vec3(-0.25,   +0.0f, +0.0f),
+                 vec3(-0.5f,   +1.0f, +0.0f)
+            };
+            left_wing[1] = {
                   vec3(-0.5f,  +1.0f, +0.0f),
-                  vec3(-0.25,  +2.0f, +0.0f),
-                  vec3(+0.0f,  +1.5f, +0.0f)
-              };
-              body[4] = {
-                  vec3(+0.0f,  +1.5f, +0.0f),
-                  vec3(+0.25,  +2.0f, +0.0f),
-                  vec3(+0.5f,  +1.0f, +0.0f),
-                  vec3(+0.5f,  +2.0f, +0.0f)
-              };
-              body[5] = {
-                 vec3(+0.5f,   +2.0f, +0.0f),
-                 vec3(+1.0,   +1.0f, +0.0f),
-                 vec3(+1.0f, +1.0f, +0.0f),
-                 vec3(+0.5f,  +0.0f, +0.0f)
-              };
-              body[6] = {
-                  vec3(+0.5f,  +0.0f, +0.0f),
-                  vec3(+1.0f,  -1.5f, +0.0f),
-                  vec3(+0.25f, -1.5f, +0.0f),
-                  vec3(+0.5f,   -2.0f, +0.0f)
-              };
-              body[7] = {
-                  vec3(+0.5f,   -2.0f, +0.0f),
-                  vec3(+0.25,   -2.5f, +0.0f),
-                  vec3(+0.125f, -2.5f, +0.0f),
-                  vec3(+0.0f,   -2.5f, +0.0f)
-              };
+                  vec3(-0.75f, +1.0f, 0.0f),
+                  vec3(-1.0,   +1.0f, 0.0f),
+                  vec3(-2.0f,   0.5f, 0.0f)
+            };
+            left_wing[2] = {
+                  vec3(-2.0f,  +0.5f, +0.0f),
+                  vec3(-1.85f, +0.50f, 0.0f),
+                  vec3(-1.75,  +0.60f, 0.0f),
+                  vec3(-1.5f,  +0.0f, 0.0f)
+            };
+            left_wing[3] = {
+                  vec3(-1.5f,  +0.0f, +0.0f),
+                  vec3(-1.25f, +0.25f, 0.0f),
+                  vec3(-0.85,  +0.30f, 0.0f),
+                  vec3(-0.75f, -0.5f, 0.0f)
+            };
+            left_wing[4] = {
+                  vec3(-0.75f, -0.5f, 0.0f),
+                  vec3(-0.50f, +0.00f, 0.0f),
+                  vec3(-0.25,  +0.05f, 0.0f),
+                  vec3(-0.20f, -0.5f, 0.0f)
+            };
+            struct bezier_line body[8];
+            body[0] = {
+                vec3(+0.0f,   -2.5f, +0.0f),
+                vec3(-0.125f, -2.5f, +0.0f),
+                vec3(-0.25,   -2.5f, +0.0f),
+                vec3(-0.5f,   -2.0f, +0.0f)
+            };
+            body[1] = {
+                vec3(-0.5f,   -2.0f, +0.0f),
+                vec3(-0.25f, -1.5f, +0.0f),
+                vec3(-1.0f,  -1.5f, +0.0f),
+                vec3(-0.5f,  +0.0f, +0.0f)
+            };
+            body[2] = {
+                vec3(-0.5f,  +0.0f, +0.0f),
+                vec3(-1.0f, +1.0f, +0.0f),
+                vec3(-1.0,   +1.0f, +0.0f),
+                vec3(-0.5f,   +2.0f, +0.0f)
+            };
+            body[3] = {
+                vec3(-0.5f,  +2.0f, +0.0f),
+                vec3(-0.5f,  +1.0f, +0.0f),
+                vec3(-0.25,  +2.0f, +0.0f),
+                vec3(+0.0f,  +1.5f, +0.0f)
+            };
+            body[4] = {
+                vec3(+0.0f,  +1.5f, +0.0f),
+                vec3(+0.25,  +2.0f, +0.0f),
+                vec3(+0.5f,  +1.0f, +0.0f),
+                vec3(+0.5f,  +2.0f, +0.0f)
+            };
+            body[5] = {
+                vec3(+0.5f,   +2.0f, +0.0f),
+                vec3(+1.0,   +1.0f, +0.0f),
+                vec3(+1.0f, +1.0f, +0.0f),
+                vec3(+0.5f,  +0.0f, +0.0f)
+            };
+            body[6] = {
+                vec3(+0.5f,  +0.0f, +0.0f),
+                vec3(+1.0f,  -1.5f, +0.0f),
+                vec3(+0.25f, -1.5f, +0.0f),
+                vec3(+0.5f,   -2.0f, +0.0f)
+            };
+            body[7] = {
+                vec3(+0.5f,   -2.0f, +0.0f),
+                vec3(+0.25,   -2.5f, +0.0f),
+                vec3(+0.125f, -2.5f, +0.0f),
+                vec3(+0.0f,   -2.5f, +0.0f)
+            };
             left_wing_bezier.init(left_wing , wing_size);
             right_wing_bezier.init(right_wing ,wing_size);
             body_bezier.init(body, body_size);
+            animation_path.init(path, 1);
             speed = speed_factor;
+            bool falling_edge = false;
         }
 
         virtual void draw(float time_s){
             float wing_rot = M_PI * time_s * speed;
-            left_wing_bezier.draw(time_s,   0.6 * std::cos(wing_rot), -0.1, -0.1);
-            right_wing_bezier.draw(time_s, -0.6 * std::cos(wing_rot), +0.1, -0.1);
-            body_bezier.draw(time_s, 0, 0, 0);
+            float x, y, z;
+            int frame;
+
+            // Generate a frame # from a sin wave
+            frame = (3 * int(100 * (std::abs(std::sin(time_s * speed)))));
+
+            // If we are on the falling edge of the sin wave, we invert the frame #
+            if(frame == 297){
+                falling_edge = true;
+            } else if(frame == 0){
+                falling_edge = false;
+            }
+            if(falling_edge){
+                frame = 297 - frame;
+            }
+
+            // Grab the frame of animation from the bezier path 0 - > 299
+            x =  animation_path.vpoint_from_init[frame];
+            y = animation_path.vpoint_from_init[frame + 1];
+            z = animation_path.vpoint_from_init[frame + 2];
+
+            //draw(float time_s, float rotation, float tx, float ty, float scale_x, float scale_y)
+            left_wing_bezier.draw(time_s,   0.45 * std::cos(wing_rot), -0.05 + x, -0.1 + y, 0.1, 0.1);
+            right_wing_bezier.draw(time_s, -0.45 * std::cos(wing_rot), +0.05 + x, -0.1 + y, 0.1, 0.1);
+            body_bezier.draw(time_s, 0, x, y, 0.1, 0.1);
+            //animation_path.draw(0, 0, 0, 0, 1, 1) << Set the render to points for debug;
         }
 
         struct bezier_line* left_wing;
         struct bezier_line* right_wing;
         struct bezier_line* body;
+        Bezier animation_path;
         Bezier right_wing_bezier;
         Bezier left_wing_bezier;
         Bezier body_bezier;
         int wing_size = 5;
         int body_size = 8;
         float speed;
+        bool falling_edge = false;
 };
+
+
+class Mountain {
+    public:
+        Mountain(){}
+        virtual void init(bezier_line* path){
+        }
+
+        virtual void draw(float time_s){
+
+        }
+};
+
 #endif
