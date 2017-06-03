@@ -20,7 +20,7 @@ public:
         ///--- Vertex Buffer
         GLfloat vpoint[] = { v1[0], v1[1], v1[2],
                              v2[0], v2[1], v2[2],
-                              v3[0], v3[1], v3[2]};
+                             v3[0], v3[1], v3[2]};
         glGenBuffers(1, &_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vpoint), vpoint, GL_STATIC_DRAW);

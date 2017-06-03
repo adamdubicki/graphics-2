@@ -22,45 +22,45 @@ public:
      
         ///--- Vertex coordinates
         {
-            const GLfloat vpoint[] = { /*V1*/ -1.0f, -1.0f, 0.0f, 
-                                       /*V2*/ +1.0f, -1.0f, 0.0f, 
+            const GLfloat vpoint[] = { /*V1*/ -1.0f, -1.0f, 0.0f,
+                                       /*V2*/ +1.0f, -1.0f, 0.0f,
                                        /*V3*/ -1.0f, +1.0f, 0.0f,
-                                       /*V4*/ +1.0f, +1.0f, 0.0f };        
+                                       /*V4*/ +1.0f, +1.0f, 0.0f };
             ///--- Buffer
             glGenBuffers(1, &_vbo_vpoint);
             glBindBuffer(GL_ARRAY_BUFFER, _vbo_vpoint);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vpoint), vpoint, GL_STATIC_DRAW);
-        
+
             ///--- Attribute
             GLuint vpoint_id = glGetAttribLocation(_pid, "vpoint");
             glEnableVertexAttribArray(vpoint_id);
             glVertexAttribPointer(vpoint_id, 3, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
-        
+
         ///--- Texture coordinates
         {
-            const GLfloat vtexcoord[] = { /*V1*/ 0.0f, 0.0f, 
-                                          /*V2*/ 1.0f, 0.0f, 
+            const GLfloat vtexcoord[] = { /*V1*/ 0.0f, 0.0f,
+                                          /*V2*/ 1.0f, 0.0f,
                                           /*V3*/ 0.0f, 1.0f,
-                                          /*V4*/ 1.0f, 1.0f}; 
-            
+                                          /*V4*/ 1.0f, 1.0f};
+
             ///--- Buffer
             glGenBuffers(1, &_vbo_vtexcoord);
             glBindBuffer(GL_ARRAY_BUFFER, _vbo_vtexcoord);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vtexcoord), vtexcoord, GL_STATIC_DRAW);
-        
+
             ///--- Attribute
             GLuint vtexcoord_id = glGetAttribLocation(_pid, "vtexcoord");
             glEnableVertexAttribArray(vtexcoord_id);
             glVertexAttribPointer(vtexcoord_id, 2, GL_FLOAT, DONT_NORMALIZE, ZERO_STRIDE, ZERO_BUFFER_OFFSET);
         }
-        
+
         ///--- Load texture
         glGenTextures(1, &_tex);
         glBindTexture(GL_TEXTURE_2D, _tex);
 
         OpenGP::EigenImage<vec3> image;
-        OpenGP::imread("Quad/wing.png", image);
+        OpenGP::imread("Quad/mrt.tga", image);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -78,7 +78,7 @@ public:
         glBindVertexArray(0);
         glUseProgram(0);
     }
-       
+
     void cleanup(){
         glBindVertexArray(0);
         glUseProgram(0);
@@ -95,14 +95,14 @@ public:
             ///--- Uniform for animation
             float t = glfwGetTime();
             glUniform1f(glGetUniformLocation(_pid, "time"), t);
-        
+
             ///--- Bind textures
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, _tex);
-           
+
             ///--- Draw
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glBindVertexArray(0);        
+        glBindVertexArray(0);
         glUseProgram(0);
     }
 };

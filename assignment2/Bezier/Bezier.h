@@ -2,13 +2,8 @@
 #define BEZIERH
 #include "icg_common.h"
 #include "math.h"
+#include "../Quad/Quad.h"
 
-
-class bezier_composite {
-    public:
-        virtual void init();
-        virtual void draw(float time_s);
-};
 
 struct bezier_line {
     vec3 c1;
@@ -37,9 +32,9 @@ public:
         }
     }
 
-    void init(bezier_line* bp, int size){
+    void init(bezier_line* bp, int size, const char* vshader, const char* fshader){
         ///--- Compile the shaders
-        _pid = OpenGP::load_shaders("Triangle/vshader.glsl", "Triangle/fshader.glsl");
+        _pid = OpenGP::load_shaders(vshader, fshader);
         if(!_pid) exit(EXIT_FAILURE);
         glUseProgram(_pid);
         num_segments = size;
@@ -132,7 +127,7 @@ public:
 class Bat {
     public:
         Bat(){}
-        virtual void init(float speed_factor, bezier_line* path){
+        virtual void init(float speed_factor, bezier_line* path, float start_s, float end_s, float wing_sp){
             struct bezier_line right_wing[5];
             right_wing[0] = {
                 vec3(+0.0f,   +0.0f, +0.0f),
@@ -244,17 +239,20 @@ class Bat {
                 vec3(+0.125f, -2.5f, +0.0f),
                 vec3(+0.0f,   -2.5f, +0.0f)
             };
-            left_wing_bezier.init(left_wing , wing_size);
-            right_wing_bezier.init(right_wing ,wing_size);
-            body_bezier.init(body, body_size);
-            animation_path.init(path, 1);
+            left_wing_bezier.init(left_wing , wing_size, vshader, fshader);
+            right_wing_bezier.init(right_wing ,wing_size,vshader, fshader);
+            body_bezier.init(body, body_size, vshader, fshader);
+            animation_path.init(path, 1, vshader, fshader);
             speed = speed_factor;
+            start_scale = start_s;
+            end_scale = end_s;
+            wing_speed = wing_sp;
             bool falling_edge = false;
         }
 
         virtual void draw(float time_s){
-            float wing_rot = M_PI * time_s * speed;
-            float x, y, z;
+            float wing_rot = M_PI * time_s * wing_speed;
+            float x, y, z, scale;
             int frame;
 
             // Generate a frame # from a sin wave
@@ -275,10 +273,12 @@ class Bat {
             y = animation_path.vpoint_from_init[frame + 1];
             z = animation_path.vpoint_from_init[frame + 2];
 
+            scale = start_scale * (1 - (float(frame)/297)) + (end_scale * (float(frame)/297));
+
             //draw(float time_s, float rotation, float tx, float ty, float scale_x, float scale_y)
-            left_wing_bezier.draw(time_s,   0.45 * std::cos(wing_rot), -0.05 + x, -0.1 + y, 0.1, 0.1);
-            right_wing_bezier.draw(time_s, -0.45 * std::cos(wing_rot), +0.05 + x, -0.1 + y, 0.1, 0.1);
-            body_bezier.draw(time_s, 0, x, y, 0.1, 0.1);
+            left_wing_bezier.draw(time_s,   0.45 * std::cos(wing_rot), -0.05 + x, -0.1 + y, scale, scale);
+            right_wing_bezier.draw(time_s, -0.45 * std::cos(wing_rot), +0.05 + x, -0.1 + y, scale, scale);
+            body_bezier.draw(time_s, 0, x, y, scale, scale);
             //animation_path.draw(0, 0, 0, 0, 1, 1) << Set the render to points for debug;
         }
 
@@ -292,19 +292,55 @@ class Bat {
         int wing_size = 5;
         int body_size = 8;
         float speed;
+        float start_scale;
+        float end_scale;
+        float wing_speed;
         bool falling_edge = false;
+        const char* vshader = "Bezier/vshader_bat.glsl";
+        const char* fshader = "Bezier/fshader_bat.glsl";
 };
 
 
 class Mountain {
     public:
         Mountain(){}
-        virtual void init(bezier_line* path){
+        virtual void init(){
+            struct bezier_line mountain_coords[4];
+            mountain_coords[0] = {
+                vec3(-1.0f, -1.0f, +0.0f),
+                vec3(-1.0f, -0.5f, +0.0f),
+                vec3(-1.0f, -0.5f, +0.0f),
+                vec3(-1.0f, -0.5f, +0.0f)
+            };
+            mountain_coords[1] = {
+                vec3(-1.0f, -0.5f, +0.0f),
+                vec3(+0.0f, -0.3f, +0.0f),
+                vec3(+0.0f, +0.2f, +0.0f),
+                vec3(+1.0f, -0.5f, +0.0f)
+            };
+            mountain_coords[2] = {
+                vec3(+1.0f, -0.5f, +0.0f),
+                vec3(+1.0f, -0.5f, +0.0f),
+                vec3(+1.0f, -0.5f, +0.0f),
+                vec3(+1.0f, -1.0f, +0.0f)
+            };
+            mountain_coords[3] = {
+                vec3(+1.0f, -1.0f, +0.0f),
+                vec3(+0.0f, -1.0f, +0.0f),
+                vec3(+0.0f, -1.0f, +0.0f),
+                vec3(-1.0f, -1.0f, +0.0f)
+            };
+
+            mountain.init(mountain_coords, 4, vshader, fshader);
+
         }
 
-        virtual void draw(float time_s){
-
+        virtual void draw(){
+            mountain.draw(0.0, 0, 0, 0, 1.0, 1.0);
         }
+        Bezier mountain;
+        const char* vshader = "Bezier/vshader_mountain.glsl";
+        const char* fshader = "Bezier/fshader_mountain.glsl";
 };
 
 #endif
