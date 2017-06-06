@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Volumes/~adubicki/g2/icg/assignment2/Bezier/Bezier.h
+icg_common.h
+/Volumes/~adubicki/g2/icg/assignment2/Bezier/icg_common.h
+math.h
+/Volumes/~adubicki/g2/icg/assignment2/Bezier/math.h
+../Quad/Quad.h
+/Volumes/~adubicki/g2/icg/assignment2/Quad/Quad.h
+
+/Volumes/~adubicki/g2/icg/assignment2/Quad/Quad.h
+icg_common.h
+/Volumes/~adubicki/g2/icg/assignment2/Quad/icg_common.h
+OpenGP/Eigen/Image.h
+/Volumes/~adubicki/g2/icg/assignment2/Quad/OpenGP/Eigen/Image.h
+
+/Volumes/~adubicki/g2/icg/assignment2/Triangle/Triangle.h
+icg_common.h
+/Volumes/~adubicki/g2/icg/assignment2/Triangle/icg_common.h
+
+/Volumes/~adubicki/g2/icg/assignment2/main.cpp
+icg_common.h
+/Volumes/~adubicki/g2/icg/assignment2/icg_common.h
+imshow.h
+/Volumes/~adubicki/g2/icg/assignment2/imshow.h
+math.h
+-
+OpenGP/GL/Eigen.h
+-
+Triangle/Triangle.h
+/Volumes/~adubicki/g2/icg/assignment2/Triangle/Triangle.h
+Quad/Quad.h
+/Volumes/~adubicki/g2/icg/assignment2/Quad/Quad.h
+Bezier/Bezier.h
+/Volumes/~adubicki/g2/icg/assignment2/Bezier/Bezier.h
+

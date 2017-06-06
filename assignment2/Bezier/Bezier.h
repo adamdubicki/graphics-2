@@ -19,16 +19,42 @@ private:
     GLuint _vbo; ///< memory buffer
     int num_segments;
 public:
-    void bezierCoeffeicients(int len, float *coefficients){
-        float k, i;
-        for(k = 0; k<=len; k++){
-            coefficients[int(k)] = 1;
-            for(i = len; i >= k+1; i--){
-                coefficients[int(k)] *= i;
+
+    // Evaluates a point along a line (used for bezier)
+    vec3 get_point_on_line(vec3 p1, vec3 p2, float line_depth){
+        float x, y, z;
+        x = p1[0] * (1 - line_depth) + p2[0] * (line_depth);
+        y = p1[1] * (1 - line_depth) + p2[1] * (line_depth);
+        z = p1[2] * (1 - line_depth) + p2[2] * (line_depth);
+        return vec3(x, y, z);
+    }
+
+    // Descastlejau recursive definition of bezier points
+    vec3 get_bezier_point(vec3 *control_points, int num_lines, float line_depth){
+        if(num_lines == 1){
+            return get_point_on_line(control_points[0], control_points[1], line_depth);
+        } else {
+            vec3 *cp_interpolated = new vec3[num_lines];
+            int i;
+            for(i = 0; i < num_lines; i++){
+                cp_interpolated[i] = get_point_on_line(control_points[i], control_points[i+1], line_depth);
             }
-            for(i = len-k; i >= 2; i--){
-                coefficients[int(k)] /= i;
-            }
+            vec3 bp = get_bezier_point(cp_interpolated, num_lines-1, line_depth);
+            return bp;
+        }
+
+    }
+
+    // Calls the recursive Descastlejau algorithm to generate bezier points
+    void create_bezier_points(GLfloat *vpoint, vec3 *control_points, int vpoint_offset){
+        float i = 0.0;
+        int insert_index = vpoint_offset;
+        for(i = 0.0; i < 1; i += 0.01){
+            vec3 bp = get_bezier_point(control_points, 3, i);
+            vpoint[insert_index] = bp[0];
+            vpoint[insert_index + 1] = bp[1];
+            vpoint[insert_index + 2] = bp[2];
+            insert_index += 3;
         }
     }
 
@@ -52,28 +78,13 @@ public:
         float u;
         for(int i = 0; i < size; i++){
             count = i*300;
-            float cp[4][2] = {
-                {bp[i].c1[0], bp[i].c1[1]},
-                {bp[i].c2[0], bp[i].c2[1]},
-                {bp[i].c3[0], bp[i].c3[1]},
-                {bp[i].c4[0], bp[i].c4[1]}
+            vec3 cp_vec[4] = {
+                bp[i].c1, bp[i].c2, bp[i].c3, bp[i].c4
             };
-            bezierCoeffeicients(n,c);
-            for(u = 0; u < 100; u += 1){
-                x = 0;
-                y = 0;
-                for(k = 0; k < 4; k++){
-                    blend = c[int(k)] * pow(u/100,k) * pow(1-u/100, n-k);
-                    x += cp[int(k)][0] * blend;
-                    y += cp[int(k)][1] * blend;
-                }
-                vpoint[count] = x;
-                vpoint[count+1] = y;
-                vpoint[count+2] = 0;
-                count += 3;
-            }
+            create_bezier_points(vpoint, cp_vec, count);
         }
 
+        // Save these interpolated points (used by animation path for translation
         for(i = 0; i < 300; i++){
             vpoint_from_init[i] = vpoint[i];
         }
