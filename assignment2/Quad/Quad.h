@@ -92,16 +92,16 @@ public:
     void draw(){
         glUseProgram(_pid);
         glBindVertexArray(_vao);
-            ///--- Uniform for animation
-            float t = glfwGetTime();
-            glUniform1f(glGetUniformLocation(_pid, "time"), t);
+        ///--- Uniform for animation
+        float t = glfwGetTime();
+        glUniform1f(glGetUniformLocation(_pid, "time"), t);
 
-            ///--- Bind textures
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, _tex);
+        ///--- Bind textures
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _tex);
 
-            ///--- Draw
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        ///--- Draw
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         glBindVertexArray(0);
         glUseProgram(0);
     }

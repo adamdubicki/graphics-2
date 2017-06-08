@@ -1,10 +1,11 @@
 #include "icg_common.h"
+#include "../assignment2/Bezier/Bezier.h"
 
 const static OpenGP::Scalar H = .7;
 const static OpenGP::Scalar R = 2;
 
 class MultiLine{
-private:
+public:
     class Hull{
     public:
         Hull() {
@@ -16,19 +17,20 @@ private:
         vec3& p3(){ return _p3; }
         vec3& p4(){ return _p4; }
 
-    private:
+    public:
         vec3 _p1;
         vec3 _p2;
         vec3 _p3;
         vec3 _p4;
     };
     
-private:
+public:
     Hull _hull;                  ///< control points
     std::vector<vec3> _vertices; ///< multiline points
     GLuint _vao;                 ///< Vertex array objects
     GLuint _pid;          ///< GLSL program ID
     GLuint _vbo;
+    Bezier _b;
     
 private:
 
@@ -75,7 +77,7 @@ public:
 
         glUseProgram(_pid);
         glBindVertexArray(_vao);
-        check_error_gl();
+
 
         ///--- Vertex Attribute ID for Vertex Positions
         GLuint position = glGetAttribLocation(_pid, "position");
@@ -88,15 +90,27 @@ public:
         ///--- setup view matrices        
         GLuint projection_id = glGetUniformLocation(_pid, "projection");
         glUniformMatrix4fv(projection_id, ONE, DONT_TRANSPOSE, projection.data());
-        mat4 MV = view*model;
+        mat4 MV = view;
         GLuint model_view_id = glGetUniformLocation(_pid, "model_view");
         glUniformMatrix4fv(model_view_id, ONE, DONT_TRANSPOSE, MV.data());
-        check_error_gl();
 
-        glDrawArrays(GL_LINE_STRIP, 0, _vertices.size());
+        struct bezier_line line_coords[1];
+        line_coords[0] = {
+            _hull._p1,
+            _hull._p2,
+            _hull._p3,
+            _hull._p4
+        };
+        cout << _hull._p1[0] << " " << _hull._p1[1] << " " << _hull._p1[2];
+        cout << " - >";
+        cout << _hull._p4[0] << " " << _hull._p4[1] << " " << _hull._p4[2] << endl;
+        const char* vshader = "../assignment2/Bezier/vshader_mountain.glsl";
+        const char* fshader = "../assignment2/Bezier/fshader_mountain.glsl";
+        _b.init(line_coords, 1, vshader, fshader);
+        _b.mode = GL_LINES;
+        _b.draw(0.01, 0, 0, 0, 1.0, 1.0);
+
         glDisableVertexAttribArray(position);
         glBindVertexArray(0);
-        glUseProgram(0);
-        check_error_gl();
     }
 };

@@ -19,6 +19,7 @@ private:
     GLuint _vbo; ///< memory buffer
     int num_segments;
 public:
+    GLenum mode = GL_TRIANGLE_FAN;
 
     // Evaluates a point along a line (used for bezier)
     vec3 get_point_on_line(vec3 p1, vec3 p2, float line_depth){
@@ -126,7 +127,7 @@ public:
         glUniformMatrix4fv(M_id, 1, GL_FALSE, M.data());
         ///--- Draw
         /// //GL_TRIANGLE_FAN
-        glDrawArrays(GL_TRIANGLE_FAN, 0, num_segments*100);
+        glDrawArrays(mode, 0, num_segments*100);
         glBindVertexArray(0);
         glUseProgram(0);
     }

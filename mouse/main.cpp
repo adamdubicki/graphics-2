@@ -1,9 +1,9 @@
 #include "icg_common.h"
 #include <OpenGP/GL/Eigen.h>
 
-#include "_quad/Quad.h"
 #include "_point/point.h"
 #include "_multiline/multiline.h"
+#include "../assignment2/Bezier/Bezier.h"
 
 
 int window_width = 1024;
@@ -13,11 +13,11 @@ mat4 projection;
 mat4 view;
 mat4 model;
 
+Bezier b;
+
 GLuint _pid_multiline;
 GLuint _pid_point;
 GLuint _pid_point_selection;
-
-Quad quad;
 
 MultiLine cam_pos_curve;
 
@@ -37,14 +37,14 @@ void init(){
 
     glClearColor(1,1,1, /*solid*/1.0 );    
     glEnable(GL_DEPTH_TEST);
-    quad.init();
 
     ///--- init cam_pos_curve
     cam_pos_curve.init(_pid_multiline);
-    cam_pos_points.push_back(ControlPoint(-0.79, 0.09, 0.2, 0));
-    cam_pos_points.push_back(ControlPoint(-0.88, -0.71, 0.2, 1));
-    cam_pos_points.push_back(ControlPoint(1.3, -0.8, 0.2, 2));
-    cam_pos_points.push_back(ControlPoint(0.71, 0.76, 0.2, 3));
+
+    cam_pos_points.push_back(ControlPoint(-0.0260417, 0.388021,0,0));
+    cam_pos_points.push_back(ControlPoint(0.296875, 0.0234375, 0, 1));
+    cam_pos_points.push_back(ControlPoint(-0.213542, 0.200521, 0.2, 2));
+    cam_pos_points.push_back(ControlPoint(-0.0546875, -0.0677083, 0, 3));
     for (unsigned int i = 0; i < cam_pos_points.size(); i++) {
         cam_pos_points[i].id() = i;
         cam_pos_points[i].init(_pid_point, _pid_point_selection);
@@ -58,7 +58,7 @@ void init(){
 
     projection = OpenGP::ortho(-right, right, -top, top, -10.0f, 10.0f);
 
-    vec3 cam_pos(0.0f, 0.0f, 2.0f);
+    vec3 cam_pos(0.0f, 0.0f, 1.0f);
     vec3 cam_look(0.0f, 0.0f, 0.0f);
     vec3 cam_up(0.0f, 1.0f, 0.0f);
 
@@ -157,6 +157,7 @@ void cleanup(){
 }
 
 int main(int, char**){
+    glutInitDisplayMode(GLUT_DOUBLE, GLUT_MULTISAMPLE);
     OpenGP::glfwInitWindowSize(window_width, window_height);
     OpenGP::glfwMakeWindow("Planets");
     OpenGP::glfwDisplayFunc(display);
