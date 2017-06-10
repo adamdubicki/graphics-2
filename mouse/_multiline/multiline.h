@@ -1,8 +1,8 @@
 #include "icg_common.h"
 #include "../assignment2/Bezier/Bezier.h"
 
-const static OpenGP::Scalar H = .7;
-const static OpenGP::Scalar R = 2;
+const static OpenGP::Scalar H = 1;
+const static OpenGP::Scalar R = 1;
 
 class MultiLine{
 public:
@@ -101,13 +101,10 @@ public:
             _hull._p3,
             _hull._p4
         };
-        cout << _hull._p1[0] << " " << _hull._p1[1] << " " << _hull._p1[2];
-        cout << " - >";
-        cout << _hull._p4[0] << " " << _hull._p4[1] << " " << _hull._p4[2] << endl;
         const char* vshader = "../assignment2/Bezier/vshader_mountain.glsl";
         const char* fshader = "../assignment2/Bezier/fshader_mountain.glsl";
         _b.init(line_coords, 1, vshader, fshader);
-        _b.mode = GL_LINES;
+        _b.mode = GL_LINE_STRIP;
         _b.draw(0.01, 0, 0, 0, 1.0, 1.0);
 
         glDisableVertexAttribArray(position);

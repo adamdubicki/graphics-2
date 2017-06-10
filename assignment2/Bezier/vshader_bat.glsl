@@ -6,6 +6,7 @@ const vec3 COLORS[3] = vec3[](
                               vec3(0.2,0.2,0.2),
                               vec3(0.2,0.2,0.2));
 out vec3 fcolor;
+out vec3 uv;
 uniform mat4 M;
 
 void main() {
@@ -33,6 +34,7 @@ void main() {
     ///--- Assemble the Model matrix
     mat4 M = mat4(T)*mat4(S)*mat4(R);
     gl_Position = M*vec4(vpoint, 1.0);
+    uv = vpoint;
 #endif
     
     fcolor = COLORS[gl_VertexID];

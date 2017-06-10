@@ -56,8 +56,7 @@ void init(){
     GLfloat top = 1.0f;
     GLfloat right = (GLfloat)window_width / window_height * top;
 
-    projection = OpenGP::ortho(-right, right, -top, top, -10.0f, 10.0f);
-
+    projection = OpenGP::ortho(-right, right, -top, top, -2.0f, 2.0f);
     vec3 cam_pos(0.0f, 0.0f, 1.0f);
     vec3 cam_look(0.0f, 0.0f, 0.0f);
     vec3 cam_up(0.0f, 1.0f, 0.0f);
@@ -157,7 +156,6 @@ void cleanup(){
 }
 
 int main(int, char**){
-    glutInitDisplayMode(GLUT_DOUBLE, GLUT_MULTISAMPLE);
     OpenGP::glfwInitWindowSize(window_width, window_height);
     OpenGP::glfwMakeWindow("Planets");
     OpenGP::glfwDisplayFunc(display);
