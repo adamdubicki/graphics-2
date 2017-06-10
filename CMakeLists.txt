@@ -13,5 +13,5 @@ include(common/GLFW.cmake)
 
 #--- Subprojects
 add_subdirectory(mouse)
-#add_subdirectory(assignment2)
+add_subdirectory(assignment2)
 
